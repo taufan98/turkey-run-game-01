@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gobble's Great Escape — a turkey's Thanksgiving dash</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #2b1a0e;
+    min-height: 100%;
+    font-family: Georgia, 'Trebuchet MS', sans-serif;
+  }
+  .wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 18px 12px 28px;
+    box-sizing: border-box;
+  }
+  h1 {
+    color: #fff3d6;
+    text-align: center;
+    margin: 0 0 4px;
+    font-size: 30px;
+    letter-spacing: 1px;
+  }
+  p.tagline {
+    color: #e8b04b;
+    text-align: center;
+    margin: 0 0 14px;
+    font-style: italic;
+    font-size: 17px;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 4px solid #8a5a2b;
+    border-radius: 12px;
+    background: #f7b267;
+    cursor: pointer;
+  }
+  .help {
+    color: #fff3d6;
+    text-align: center;
+    font-size: 15px;
+    line-height: 1.7;
+    margin: 14px 0 0;
+  }
+  .help b { color: #ffd23f; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>GOBBLE'S GREAT ESCAPE</h1>
+  <p class="tagline">One turkey. One farmer. One oven. Zero Thanksgiving dinners.</p>
+  <canvas id="game" width="1280" height="720"></canvas>
+  <p class="help">
+    <b>SPACE</b> jump &amp; start &nbsp;•&nbsp; <b>↓</b> slide under the carving knives &nbsp;•&nbsp;
+    <b>H</b> hide in a haystack &nbsp;•&nbsp; <b>SHIFT</b> sprint &nbsp;•&nbsp; <b>P</b> pause &nbsp;•&nbsp; <b>M</b> mute &nbsp;•&nbsp; <b>R</b> run again<br>
+    Jump the fences, dodge the oven, grab the corn — and reach the Freedom Woods before the farmer catches you.
+  </p>
+</div>
+<script type="module">
+  import { bootGame } from './src/main.js';
+  bootGame(document.getElementById('game'));
+</script>
+</body>
+</html>
