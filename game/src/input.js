@@ -55,6 +55,10 @@ export class InputState {
     return this.keysDown.has('ArrowDown') || this.keysDown.has('KeyS');
   }
 
+  get slowHeld() {
+    return this.keysDown.has('ArrowLeft') || this.keysDown.has('KeyA');
+  }
+
   get sprintHeld() {
     return this.keysDown.has('ShiftLeft') || this.keysDown.has('ShiftRight')
       || this.keysDown.has('ArrowRight') || this.keysDown.has('KeyD');

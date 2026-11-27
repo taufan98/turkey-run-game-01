@@ -16,7 +16,7 @@ Then open http://localhost:8080 in a desktop browser. Or open `game/index.html` 
 
 ## Controls
 
-- **SPACE** — jump (and start) · **↓** — slide under knives · **H** — hide in a haystack · **SHIFT** — sprint · **P** — pause · **M** — mute · **R** — run again
+- **SPACE** — jump (and start) · **↓** — slide under knives · **H** — hide in a haystack · **SHIFT** — sprint · **←** — slow down · **P** — pause · **M** — mute · **R** — run again
 
 ---
 

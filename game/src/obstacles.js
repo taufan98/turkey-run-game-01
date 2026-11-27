@@ -2,7 +2,7 @@
 // Everything Gobble must jump, slide under, dodge or eat, spawned ahead of
 // him by distance and drawn in the world as it scrolls past.
 
-import { GROUND_Y, PALETTE, CORN_POINTS, GOLDEN_CORN_POINTS } from './config.js';
+import { GROUND_Y, PALETTE, TURKEY_X, CORN_POINTS, GOLDEN_CORN_POINTS } from './config.js';
 import { pickFrom, rangeBetween } from './random.js';
 
 export const OBSTACLE_KIND = {
@@ -10,6 +10,7 @@ export const OBSTACLE_KIND = {
   HAY_BALE: 'hayBale',
   OVEN: 'oven',
   KNIFE: 'knife',
+  LOW_KNIFE: 'lowKnife',
   HAYSTACK: 'haystack',
   CORN: 'corn',
   GOLDEN_CORN: 'goldenCorn',
@@ -17,8 +18,8 @@ export const OBSTACLE_KIND = {
 
 const SPAWN_PLANS = {
   farmyard: ['fence', 'fence', 'hayBale', 'corn', 'corn', 'haystack', 'fence', 'corn'],
-  barn: ['hayBale', 'knife', 'fence', 'corn', 'knife', 'haystack', 'hayBale', 'corn'],
-  kitchen: ['oven', 'knife', 'oven', 'corn', 'knife', 'oven', 'hayBale', 'goldenCorn'],
+  barn: ['hayBale', 'knife', 'lowKnife', 'fence', 'corn', 'knife', 'haystack', 'hayBale', 'corn'],
+  kitchen: ['oven', 'knife', 'oven', 'lowKnife', 'corn', 'knife', 'oven', 'hayBale', 'goldenCorn'],
   forest: ['fence', 'corn', 'hayBale', 'corn', 'fence', 'goldenCorn'],
 };
 
@@ -39,11 +40,20 @@ export class ObstacleField {
     return SPAWN_PLANS[stageId] || SPAWN_PLANS.farmyard;
   }
 
-  spawnAhead(worldX, stageId, distanceM) {
+  spawnAhead(worldX, stageId, distanceM, speed) {
     const plan = this.planFor(stageId);
     const kind = pickFrom(this.rng, plan);
-    const gap = rangeBetween(this.rng, 340, 520) + (distanceM > 700 ? 40 : 0);
+    const gap = rangeBetween(this.rng, 400, 560) + (distanceM > 700 ? 100 : 0);
     this.nextSpawnX = worldX + gap;
+    if (kind === 'knife') {
+      // A falling knife takes ~1.19 s to land (0.55 s warning + the fall),
+      // travelling ~1.19 * speed leftwards in that time. Spawn it far
+      // enough out that it lands at least 300 px ahead of the turkey:
+      // a blade landing on the turkey's head would be undodgeable.
+      const fallTime = 0.55 + Math.sqrt((2 * (GROUND_Y - 80)) / 2600);
+      const minSpawnX = TURKEY_X + 300 + fallTime * (speed || 450);
+      this.nextSpawnX = Math.max(this.nextSpawnX, minSpawnX);
+    }
     this.addItem(kind, this.nextSpawnX, distanceM);
   }
 
@@ -82,12 +92,16 @@ export class ObstacleField {
       hayBale: { width: 84, height: 62 },
       oven: { width: 130, height: 110 },
       haystack: { width: 110, height: 96 },
+      // A blade on a rope, hanging at head height: slide under it.
+      // Its bottom (580) clears a sliding turkey (top 586) but not a
+      // standing one (top 558), so sliding is the way through.
+      lowKnife: { width: 40, height: 70, lift: 40 },
     };
     const size = sizes[kind];
     this.items.push({
-      kind: OBSTACLE_KIND[kind === 'hayBale' ? 'HAY_BALE' : kind === 'haystack' ? 'HAYSTACK' : kind.toUpperCase()],
+      kind: OBSTACLE_KIND[kind === 'hayBale' ? 'HAY_BALE' : kind === 'haystack' ? 'HAYSTACK' : kind === 'lowKnife' ? 'LOW_KNIFE' : kind.toUpperCase()],
       x,
-      y: GROUND_Y,
+      y: GROUND_Y - (size.lift || 0),
       width: size.width,
       height: size.height,
       taken: false,
@@ -156,10 +170,11 @@ export class ObstacleField {
     for (const item of this.items) {
       if (item.kind === OBSTACLE_KIND.CORN || item.kind === OBSTACLE_KIND.GOLDEN_CORN) continue;
       if (item.kind === OBSTACLE_KIND.HAYSTACK) continue;
-      if (item.kind === OBSTACLE_KIND.KNIFE && !item.landed) {
-        // A falling knife only hurts while it is still in the air above you.
-        if (item.y + item.height < turkey.top) continue;
-      }
+      // A falling knife never hits on the way down: it is a warning, and
+      // only the blade stuck in the ground ahead is an obstacle to jump.
+      // (A knife landing exactly on the turkey's head would be undodgeable:
+      // the turkey cannot step aside, so the fall itself must be safe.)
+      if (item.kind === OBSTACLE_KIND.KNIFE && !item.landed) continue;
       const itemLeft = item.x - item.width / 2;
       const itemRight = item.x + item.width / 2;
       const itemTop = item.kind === OBSTACLE_KIND.KNIFE ? item.y : item.y - item.height;
@@ -177,6 +192,7 @@ export class ObstacleField {
       if (item.kind === OBSTACLE_KIND.HAY_BALE) this.drawHayBale(ctx, item);
       if (item.kind === OBSTACLE_KIND.OVEN) this.drawOven(ctx, item);
       if (item.kind === OBSTACLE_KIND.KNIFE) this.drawKnife(ctx, item);
+      if (item.kind === OBSTACLE_KIND.LOW_KNIFE) this.drawLowKnife(ctx, item);
       if (item.kind === OBSTACLE_KIND.HAYSTACK) this.drawHaystack(ctx, item);
       if (item.kind === OBSTACLE_KIND.CORN) this.drawCorn(ctx, item, false);
       if (item.kind === OBSTACLE_KIND.GOLDEN_CORN) this.drawCorn(ctx, item, true);
@@ -278,6 +294,35 @@ export class ObstacleField {
     ctx.fillStyle = PALETTE.knifeHandle;
     ctx.beginPath();
     ctx.roundRect(-12, -26, 24, 28, 5);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  drawLowKnife(ctx, item) {
+    // A carving knife on a rope, swaying at head height: slide under it.
+    const sway = Math.sin(item.x * 0.01) * 0.08;
+    ctx.save();
+    ctx.translate(item.x, 0);
+    ctx.rotate(sway);
+    ctx.strokeStyle = '#5d3a24';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, item.y - item.height - 24);
+    ctx.stroke();
+    const top = item.y - item.height;
+    ctx.fillStyle = PALETTE.knifeHandle;
+    ctx.beginPath();
+    ctx.roundRect(-11, top, 22, 26, 5);
+    ctx.fill();
+    ctx.fillStyle = PALETTE.knifeBlade;
+    ctx.beginPath();
+    ctx.moveTo(-13, top + 24);
+    ctx.lineTo(13, top + 24);
+    ctx.lineTo(8, top + item.height);
+    ctx.lineTo(0, top + item.height + 12);
+    ctx.lineTo(-8, top + item.height);
+    ctx.closePath();
     ctx.fill();
     ctx.restore();
   }

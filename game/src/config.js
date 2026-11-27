@@ -7,7 +7,7 @@ export const GROUND_Y = 620;
 export const TURKEY_X = 300;
 
 export const GRAVITY = 2600;
-export const JUMP_VELOCITY = -980;
+export const JUMP_VELOCITY = -1050;
 export const BASE_SPEED = 430;
 export const SPRINT_SPEED = 620;
 export const MAX_SPEED = 700;

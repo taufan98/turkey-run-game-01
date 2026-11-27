@@ -60,7 +60,7 @@ export function drawHud(ctx, state) {
   ctx.fill();
   ctx.fillStyle = PALETTE.textLight;
   ctx.font = '15px Georgia, serif';
-  ctx.fillText('SPACE jump  •  ↓ slide  •  H hide in hay  •  SHIFT sprint  •  P pause  •  M mute', 36, CANVAS_HEIGHT - 21);
+  ctx.fillText('SPACE jump  •  ↓ slide  •  H hide in hay  •  SHIFT sprint  •  ← slow  •  P pause  •  M mute', 36, CANVAS_HEIGHT - 21);
   if (paused) {
     ctx.fillStyle = PALETTE.textLight;
     ctx.font = 'bold 15px Georgia, serif';
@@ -114,7 +114,7 @@ export function drawTitleScreen(ctx, bestDistance) {
   ctx.fillText('Jump the fences, slide under the carving knives,', 640, 332);
   ctx.fillText('dodge the oven, hide in the hay — and reach the forest.', 640, 364);
   ctx.font = 'bold 20px Georgia, serif';
-  ctx.fillText('SPACE / CLICK — jump & start      ↓ — slide      H — hide      SHIFT — sprint', 640, 416);
+  ctx.fillText('SPACE / CLICK — jump & start      ↓ — slide      H — hide      SHIFT — sprint      ← — slow', 640, 416);
   // Start button.
   drawButton(ctx, 490, 440, 300, 64, 'START THE RUN');
   ctx.fillStyle = '#2b1a0e';

@@ -209,9 +209,12 @@ export class GobbleGame {
 
   updatePlaying(dt, silent) {
     const sprinting = this.input.sprintHeld && !this.turkey.hidden;
-    const targetSpeed = sprinting
-      ? SPRINT_SPEED
-      : Math.min(MAX_SPEED, BASE_SPEED + this.distanceM * 0.12);
+    const slowing = this.input.slowHeld && !this.turkey.hidden;
+    const targetSpeed = slowing
+      ? 300
+      : sprinting
+        ? SPRINT_SPEED
+        : Math.min(MAX_SPEED, BASE_SPEED + this.distanceM * 0.12);
     this.speed += (targetSpeed - this.speed) * Math.min(1, dt * 2);
     this.distanceM += (this.speed * dt) / PIXELS_PER_METER;
     this.score += this.speed * dt * 0.02;
@@ -227,7 +230,7 @@ export class GobbleGame {
     this.farmer.update(dt, this.turkey.hidden, this.speed, silent ? null : this.sounds, sprinting);
     const furthestX = this.field.items.reduce((max, item) => Math.max(max, item.x), 0);
     if (furthestX < CANVAS_WIDTH + 200) {
-      this.field.spawnAhead(Math.max(furthestX, this.turkey.x), this.stage.id, this.distanceM);
+      this.field.spawnAhead(Math.max(furthestX, this.turkey.x), this.stage.id, this.distanceM, this.speed);
     }
     this.field.update(dt, this.speed, this.turkey, silent ? null : this.sounds);
     const corn = this.field.collectCorn(this.turkey);
@@ -242,7 +245,7 @@ export class GobbleGame {
       this.field.items = this.field.items.filter((item) => item !== hit);
       this.lives -= 1;
       this.turkey.stumble();
-      this.farmer.pullCloser(70);
+      this.farmer.pullCloser(55);
       if (!silent) this.sounds.thud();
     }
     const newStage = stageAt(this.distanceM);
