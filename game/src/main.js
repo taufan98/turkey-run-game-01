@@ -233,14 +233,18 @@ export class GobbleGame {
       this.field.spawnAhead(Math.max(furthestX, this.turkey.x), this.stage.id, this.distanceM, this.speed);
     }
     this.field.update(dt, this.speed, this.turkey, silent ? null : this.sounds);
-    const corn = this.field.collectCorn(this.turkey);
+    const corn = this.turkey.hidden ? { points: 0, golden: false } : this.field.collectCorn(this.turkey);
     if (corn.points > 0) {
       this.score += corn.points;
       this.cornCollected += corn.points >= 50 ? 1 : Math.round(corn.points / 10);
       this.farmer.pushBack(corn.golden ? 20 : 8);
       if (!silent) this.sounds.cornDing(corn.golden);
     }
-    const hit = this.turkey.invulnerableTimer > 0 ? null : this.field.hitObstacle(this.turkey);
+    // Buried in a haystack, Gobble cannot be hit: the fence and the bale
+    // pass the haystack by. The risk of hiding is the farmer, not the wood.
+    const hit = (this.turkey.invulnerableTimer > 0 || this.turkey.hidden)
+      ? null
+      : this.field.hitObstacle(this.turkey);
     if (hit) {
       this.field.items = this.field.items.filter((item) => item !== hit);
       this.lives -= 1;

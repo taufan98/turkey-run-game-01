@@ -64,12 +64,14 @@ export class Farmer {
     }
     // He never quite gives up, but he tires: the gap only creeps closed
     // while Gobble runs clean, and a sprinting turkey pulls away.
+    // (2 px/s: a clean 150-second run costs 300 px against a 260 start,
+    // so the corn and the haystacks have to do the rest — as they should.)
     if (this.gap > 330) {
       this.state = FARMER_STATE.SPRINT;
       this.gap -= 40 * dt;
     } else {
       this.state = FARMER_STATE.CHASE;
-      this.gap -= 3 * dt;
+      this.gap -= 2 * dt;
       if (sprinting) this.gap += 15 * dt;
     }
     if (this.shoutTimer <= 0) {
